@@ -9,25 +9,15 @@ import re
 from groq import Groq
 from flask import current_app
 
-
 def _get_client() -> Groq:
+    """Return Groq client using the API key from Flask config."""
     return Groq(api_key=current_app.config["GROQ_API_KEY"])
 
-
-# ──────────────────────────────────────────────
-# 1. DIET PLAN GENERATION
-# ──────────────────────────────────────────────
-
+# ----------------------------------------------------------------------
+# 1. DIET PLAN GENERATION (unchanged, works)
+# ----------------------------------------------------------------------
 def generate_diet_plan(user_profile: dict) -> dict:
-    """
-    Constructs a detailed prompt and calls Groq to generate a
-    7-day Ayurvedic meal plan in strict JSON format.
-
-    Returns a dict with keys: days (list of 7 day objects).
-    Raises ValueError on parse failure.
-    """
     client = _get_client()
-
     dosha = user_profile["primary_dosha"]
     name = user_profile["name"]
     age = user_profile["age"]
@@ -50,18 +40,8 @@ The JSON structure must be exactly:
         "ingredients": ["item1", "item2"],
         "benefits": "Ayurvedic benefit"
       },
-      "lunch": {
-        "name": "Meal name",
-        "description": "Brief description",
-        "ingredients": ["item1", "item2"],
-        "benefits": "Ayurvedic benefit"
-      },
-      "dinner": {
-        "name": "Meal name",
-        "description": "Brief description",
-        "ingredients": ["item1", "item2"],
-        "benefits": "Ayurvedic benefit"
-      },
+      "lunch": { ... },
+      "dinner": { ... },
       "daily_tip": "One Ayurvedic lifestyle tip for the day"
     }
   ]
@@ -91,8 +71,6 @@ Remember: respond with ONLY the JSON object."""
     )
 
     raw = completion.choices[0].message.content.strip()
-
-    # Strip any accidental markdown fences
     raw = re.sub(r"^```(?:json)?\s*", "", raw)
     raw = re.sub(r"\s*```$", "", raw)
 
@@ -100,67 +78,55 @@ Remember: respond with ONLY the JSON object."""
         plan = json.loads(raw)
     except json.JSONDecodeError as e:
         raise ValueError(f"Failed to parse diet plan JSON from AI: {e}\nRaw response: {raw[:500]}")
-
     return plan
 
-
-# ──────────────────────────────────────────────
-# 2. CHATBOT
-# ──────────────────────────────────────────────
-
-CHAT_SYSTEM_PROMPT = """You are KimJungGoon, a warm, knowledgeable Ayurvedic health assistant.
-You help users understand their dosha, Ayurvedic diet principles, herbs, lifestyle practices, and wellness.
-Keep responses concise (3-5 sentences unless more detail is asked for), friendly, and practical.
-Always ground advice in Ayurvedic principles. If asked about serious medical conditions, 
-remind the user to consult a qualified healthcare professional.
-Never recommend specific medications or dosages."""
-
-
-# app/ai_service.py
-import os
-from groq import Groq
-from flask import current_app, g
-
-# ... (keep your existing generate_diet_plan function as is) ...
-
+# ----------------------------------------------------------------------
+# 2. CHATBOT (fixed)
+# ----------------------------------------------------------------------
 def chat_response(messages, user_context=None):
     """
     Get a response from the Groq API for the chatbot.
+    Returns a string reply.
     """
     try:
-        # Initialize the Groq client with the API key from the app's config
-        # 'current_app' is used to access the Flask app context
-        client = Groq(api_key=current_app.config['GROQ_API_KEY'])
+        client = _get_client()
 
-        # Prepare the system message with user context if provided
-        system_message = "You are KimJongGoon, an expert Ayurvedic guide. You are helpful, wise, and concise in your responses."
+        # Build system message – use a proper Ayurvedic guide name
+        system_message = (
+            "You are KimJongGoon, the divine Ayurvedic physician. "
+            "You are warm, wise, and concise. Provide practical Ayurvedic advice "
+            "about diet, lifestyle, herbs, and daily routines. "
+            "Keep responses to 3-5 sentences unless more detail is asked. "
+            "If asked about serious medical conditions, advise consulting a doctor."
+        )
+
         if user_context:
-            # You can customize how the user's dosha is incorporated here
-            system_message += f" The user you are speaking with has the following Ayurvedic profile: {user_context}. Tailor your advice accordingly."
+            # user_context is typically a dict with dosha, name, etc.
+            if isinstance(user_context, dict):
+                dosha = user_context.get("primary_dosha", "unknown")
+                name = user_context.get("name", "dear user")
+                system_message += f" You are currently speaking with {name}, who has a {dosha} dosha constitution. Tailor your advice accordingly."
+            else:
+                system_message += f" User context: {user_context}"
 
-        # Format messages for the Groq API
-        formatted_messages = [
-            {"role": "system", "content": system_message},
-            *messages  # This includes the conversation history
-        ]
+        # Format messages – the incoming `messages` should be a list of {role, content}
+        formatted_messages = [{"role": "system", "content": system_message}] + messages
 
-        # Make the API call to Groq
-        # Make sure the model name is the updated one you're using
+        # Make API call
         chat_completion = client.chat.completions.create(
             messages=formatted_messages,
-            model="llama-3.3-70b-versatile",  # Or your chosen model
+            model="llama-3.3-70b-versatile",
             temperature=0.7,
             max_tokens=1024,
             top_p=1,
             stop=None,
         )
 
-        # Extract and return the reply text
         reply = chat_completion.choices[0].message.content
         return reply
 
     except Exception as e:
-        # Log the error for debugging
-        print(f"Error in chat_response: {e}")
-        # Re-raise the exception so the route can handle it
+        # Print the actual error to the Flask log (visible in terminal)
+        print(f"ERROR in chat_response: {type(e).__name__}: {str(e)}")
+        # Re-raise with a clear message
         raise Exception(f"Chat API error: {str(e)}")

@@ -180,10 +180,51 @@ def get_profile(user_id):
 @main.route("/api/profile/<int:user_id>", methods=["PUT"])
 @login_required
 def update_profile(user_id):
-    if current_user.profile.id != user_id:
+    """Update profile, recalculate dosha, regenerate and overwrite diet plan."""
+    # Ensure the profile belongs to the logged-in user
+    profile = UserProfile.query.get_or_404(user_id)
+    if profile.user_id != current_user.id:
         return jsonify({"error": "Unauthorized"}), 403
-    # ... rest of update logic unchanged ...
 
+    data = request.get_json()
+
+    # Update fields if provided
+    if "name" in data:
+        profile.name = data["name"]
+    if "age" in data:
+        profile.age = int(data["age"])
+    if "weight" in data:
+        profile.weight = float(data["weight"])
+    if "dietary_preference" in data:
+        profile.dietary_preference = data["dietary_preference"]
+    if "answers" in data:
+        profile.questionnaire_answers = json.dumps(data["answers"])
+        profile.primary_dosha = calculate_dosha(data["answers"])
+
+    profile.updated_at = datetime.utcnow()
+
+    # Regenerate plan
+    try:
+        plan_data = generate_diet_plan(profile.to_dict())
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"Diet plan generation failed: {str(e)}"}), 500
+
+    # Save new diet plan
+    new_plan = DietPlan(
+        user_id=profile.id,
+        plan_data=json.dumps(plan_data),
+        dosha_at_generation=profile.primary_dosha,
+    )
+    db.session.add(new_plan)
+    db.session.commit()
+
+    # ✅ MUST return a response
+    return jsonify({
+        "user": profile.to_dict(),
+        "plan": new_plan.to_dict(),
+        "dosha_info": get_dosha_description(profile.primary_dosha),
+    })
 
 # ──────────────────────────────────────────────
 # LANDING PAGE (no intake form, just hero + buttons)
@@ -198,3 +239,23 @@ def index():
         else:
             return redirect(url_for("main.profile_new"))
     return render_template("landing.html")
+
+# ──────────────────────────────────────────────
+# CHAT BOT
+# ──────────────────────────────────────────────
+
+@main.route("/api/chat", methods=["POST"])
+def chat():
+    data = request.get_json()
+    messages = data.get("messages", [])
+    user_context = data.get("user_context", None)
+
+    if not messages:
+        return jsonify({"error": "No messages provided"}), 400
+
+    try:
+        reply = chat_response(messages, user_context)
+    except Exception as e:
+        return jsonify({"error": f"Chat failed: {str(e)}"}), 500
+
+    return jsonify({"reply": reply})
