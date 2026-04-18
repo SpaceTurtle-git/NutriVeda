@@ -93,27 +93,29 @@
       </div>
 
       <!-- Dosha Questionnaire -->
-      <div class="space-y-6">
-        <div>
-          <h3 class="font-display font-700 text-lg">Dosha Questionnaire</h3>
-          <p class="text-xs text-bark/50 mt-1">Choose the option that resonates most naturally with you.</p>
-        </div>
+<div class="space-y-6">
+  <div>
+    <h3 class="font-display font-700 text-lg">Dosha Questionnaire</h3>
+    <p class="text-xs text-bark/50 mt-1">Choose the option that resonates most naturally with you.</p>
+  </div>
 
-        {% for q in questions %}
-        <div class="space-y-3" id="question-{{ q.id }}">
-          <p class="font-500 text-sm">{{ loop.index }}. {{ q.text }}</p>
-          <div class="space-y-2">
-            {% for opt in q.options %}
-            <label class="dosha-option" data-qid="{{ q.id }}" data-value="{{ opt.value }}">
-              <input type="radio" name="{{ q.id }}" value="{{ opt.value }}" class="sr-only" required />
-              <span class="option-dot"></span>
-              <span>{{ opt.label }}</span>
-            </label>
-            {% endfor %}
-          </div>
-        </div>
+  <div class="space-y-6">
+    {% for q in questions %}
+    <div class="space-y-3" id="question-{{ q.id }}">
+      <p class="font-500 text-sm">{{ loop.index }}. {{ q.text }}</p>
+      <div class="space-y-2">
+        {% for opt in q.options %}
+        <label class="dosha-option" data-qid="{{ q.id }}" data-value="{{ opt.value }}">
+          <input type="radio" name="{{ q.id }}" value="{{ opt.value }}" class="sr-only" required />
+          <span class="option-dot"></span>
+          <span>{{ opt.label }}</span>
+        </label>
         {% endfor %}
       </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
 
       <!-- Submit -->
       <button type="submit" id="submit-btn" class="brutal-btn bg-bark text-cream w-full py-4 text-base font-display font-700 tracking-wide">

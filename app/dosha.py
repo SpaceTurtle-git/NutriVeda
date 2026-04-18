@@ -1,10 +1,12 @@
+# app/dosha.py
+
 """
 Dosha calculation logic.
 Each question maps answers to dosha scores.
 The dosha with the highest total score wins.
 """
 
-# Question definitions sent to the frontend
+# Extended questionnaire (9 questions)
 DOSHA_QUESTIONS = [
     {
         "id": "q1",
@@ -33,6 +35,60 @@ DOSHA_QUESTIONS = [
             {"value": "c", "label": "Withdraw, become quiet, prefer to sleep it off", "dosha": "kapha"},
         ],
     },
+    {
+        "id": "q4",
+        "text": "How would you describe your skin and hair?",
+        "options": [
+            {"value": "a", "label": "Dry, rough, thin skin; dry, brittle hair", "dosha": "vata"},
+            {"value": "b", "label": "Oily, sensitive, prone to rashes; fine or thinning hair", "dosha": "pitta"},
+            {"value": "c", "label": "Thick, oily, smooth skin; thick, lustrous hair", "dosha": "kapha"},
+        ],
+    },
+    {
+        "id": "q5",
+        "text": "How is your appetite and digestion?",
+        "options": [
+            {"value": "a", "label": "Irregular, often low appetite; prone to gas/bloating", "dosha": "vata"},
+            {"value": "b", "label": "Strong, sharp appetite; can get heartburn easily", "dosha": "pitta"},
+            {"value": "c", "label": "Slow but steady; digestion is heavy and takes time", "dosha": "kapha"},
+        ],
+    },
+    {
+        "id": "q6",
+        "text": "What is your typical sleep pattern?",
+        "options": [
+            {"value": "a", "label": "Light, interrupted sleep; often wake up at night", "dosha": "vata"},
+            {"value": "b", "label": "Moderate, but tend to be a light sleeper; wake up easily", "dosha": "pitta"},
+            {"value": "c", "label": "Deep, heavy, long sleep; difficult to wake up", "dosha": "kapha"},
+        ],
+    },
+    {
+        "id": "q7",
+        "text": "How do you handle temperature and weather?",
+        "options": [
+            {"value": "a", "label": "Prefer warm, dislike cold and wind", "dosha": "vata"},
+            {"value": "b", "label": "Prefer cool, dislike heat and humidity", "dosha": "pitta"},
+            {"value": "c", "label": "Prefer dry, dislike damp and cold", "dosha": "kapha"},
+        ],
+    },
+    {
+        "id": "q8",
+        "text": "How would you describe your mental disposition?",
+        "options": [
+            {"value": "a", "label": "Creative, quick thinker, but easily distracted", "dosha": "vata"},
+            {"value": "b", "label": "Sharp, competitive, goal-oriented, can be critical", "dosha": "pitta"},
+            {"value": "c", "label": "Calm, steady, compassionate, but resistant to change", "dosha": "kapha"},
+        ],
+    },
+    {
+        "id": "q9",
+        "text": "How are your bowel movements?",
+        "options": [
+            {"value": "a", "label": "Irregular, dry, hard, often constipated", "dosha": "vata"},
+            {"value": "b", "label": "Frequent, loose, sometimes urgent", "dosha": "pitta"},
+            {"value": "c", "label": "Regular, heavy, well-formed", "dosha": "kapha"},
+        ],
+    },
 ]
 
 
@@ -57,6 +113,8 @@ def calculate_dosha(answers: dict) -> str:
     primary = max(scores, key=lambda d: (scores[d], ["vata", "pitta", "kapha"].index(d) * -1))
     return primary.capitalize()
 
+
+# Rest of file (get_dosha_description) unchanged
 
 def get_dosha_description(dosha: str) -> dict:
     """Returns a short description and key dietary traits for the dosha."""
