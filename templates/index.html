@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block title %}Discover Your Dosha — Āyurveda Diet{% endblock %}
+
+{% block content %}
+
+<!-- HERO -->
+<section class="max-w-6xl mx-auto px-6 pt-16 pb-8 grid md:grid-cols-2 gap-12 items-center">
+  <div class="space-y-6">
+    <div class="inline-block bg-sage text-white text-xs font-600 tracking-widest uppercase px-3 py-1 border-2 border-bark">
+      Ancient Wisdom · Modern Nutrition
+    </div>
+    <h1 class="font-display font-800 text-5xl md:text-6xl leading-tight">
+      Eat right for<br/>
+      <span class="text-vata">your</span> body,<br/>
+      <span class="text-sage">your</span> dosha.
+    </h1>
+    <p class="text-bark/70 text-lg leading-relaxed max-w-md">
+      Answer a few questions, discover your Ayurvedic constitution, and receive a personalised 7-day meal plan crafted by AI.
+    </p>
+    <div class="flex gap-6 text-sm">
+      <div class="flex items-center gap-2"><span class="w-3 h-3 bg-vata border-2 border-bark inline-block"></span> Vata</div>
+      <div class="flex items-center gap-2"><span class="w-3 h-3 bg-pitta border-2 border-bark inline-block"></span> Pitta</div>
+      <div class="flex items-center gap-2"><span class="w-3 h-3 bg-kapha border-2 border-bark inline-block"></span> Kapha</div>
+    </div>
+  </div>
+
+  <!-- DECORATIVE BLOCK -->
+  <div class="hidden md:grid grid-cols-2 gap-4">
+    <div class="brutal-card bg-vata/20 p-6 space-y-2">
+      <div class="text-3xl">🍂</div>
+      <div class="font-display font-700">Vata</div>
+      <div class="text-xs text-bark/60">Air & Space · Creative & Light</div>
+    </div>
+    <div class="brutal-card bg-pitta/20 p-6 space-y-2 mt-6">
+      <div class="text-3xl">🔥</div>
+      <div class="font-display font-700">Pitta</div>
+      <div class="text-xs text-bark/60">Fire & Water · Intense & Sharp</div>
+    </div>
+    <div class="brutal-card bg-kapha/20 p-6 space-y-2 col-span-2">
+      <div class="text-3xl">🌊</div>
+      <div class="font-display font-700">Kapha</div>
+      <div class="text-xs text-bark/60">Earth & Water · Calm & Steady</div>
+    </div>
+  </div>
+</section>
+
+<!-- FORM -->
+<section class="max-w-3xl mx-auto px-6 pb-24">
+  <div class="brutal-card bg-white p-8 md:p-12 space-y-10">
+    <div>
+      <h2 class="font-display font-700 text-2xl">Your Profile</h2>
+      <p class="text-bark/60 text-sm mt-1">Fill in your details and answer the dosha questionnaire below.</p>
+    </div>
+
+    <form id="intake-form" novalidate class="space-y-8">
+
+      <!-- Basic Info -->
+      <div class="grid md:grid-cols-2 gap-6">
+        <div class="space-y-2 md:col-span-2">
+          <label class="brutal-label">Full Name</label>
+          <input type="text" id="name" name="name" placeholder="e.g. Priya Sharma"
+            class="brutal-input w-full" required />
+        </div>
+        <div class="space-y-2">
+          <label class="brutal-label">Age (years)</label>
+          <input type="number" id="age" name="age" placeholder="25" min="10" max="100"
+            class="brutal-input w-full" required />
+        </div>
+        <div class="space-y-2">
+          <label class="brutal-label">Weight (kg)</label>
+          <input type="number" id="weight" name="weight" placeholder="65" min="20" max="250"
+            step="0.1" class="brutal-input w-full" required />
+        </div>
+      </div>
+
+      <!-- Dietary Preference -->
+      <div class="space-y-3">
+        <label class="brutal-label">Dietary Preference</label>
+        <div class="grid grid-cols-2 gap-4">
+          <label class="diet-option" data-value="veg">
+            <input type="radio" name="dietary_preference" value="veg" class="sr-only" required />
+            <span class="text-xl">🥦</span>
+            <span class="font-600">Vegetarian</span>
+            <span class="text-xs text-bark/50">No meat, fish, or eggs</span>
+          </label>
+          <label class="diet-option" data-value="non-veg">
+            <input type="radio" name="dietary_preference" value="non-veg" class="sr-only" />
+            <span class="text-xl">🍗</span>
+            <span class="font-600">Non-Vegetarian</span>
+            <span class="text-xs text-bark/50">Includes meat & fish</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Dosha Questionnaire -->
+      <div class="space-y-6">
+        <div>
+          <h3 class="font-display font-700 text-lg">Dosha Questionnaire</h3>
+          <p class="text-xs text-bark/50 mt-1">Choose the option that resonates most naturally with you.</p>
+        </div>
+
+        {% for q in questions %}
+        <div class="space-y-3" id="question-{{ q.id }}">
+          <p class="font-500 text-sm">{{ loop.index }}. {{ q.text }}</p>
+          <div class="space-y-2">
+            {% for opt in q.options %}
+            <label class="dosha-option" data-qid="{{ q.id }}" data-value="{{ opt.value }}">
+              <input type="radio" name="{{ q.id }}" value="{{ opt.value }}" class="sr-only" required />
+              <span class="option-dot"></span>
+              <span>{{ opt.label }}</span>
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Submit -->
+      <button type="submit" id="submit-btn" class="brutal-btn bg-bark text-cream w-full py-4 text-base font-display font-700 tracking-wide">
+        <span id="btn-text">Discover My Dosha & Generate Plan</span>
+        <span id="btn-loader" class="hidden">
+          <svg class="animate-spin inline w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+          </svg>
+          Generating your plan…
+        </span>
+      </button>
+
+    </form>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+{% endblock %}

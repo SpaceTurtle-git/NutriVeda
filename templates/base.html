@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Āyurveda Diet{% endblock %}</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts: Syne (display) + DM Sans (body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet" />
+
+  <!-- Custom styles -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['Syne', 'sans-serif'],
+            body: ['DM Sans', 'sans-serif'],
+          },
+          colors: {
+            cream: '#F5F0E8',
+            bark:  '#2C2416',
+            vata:  '#E8935A',
+            pitta: '#E85A5A',
+            kapha: '#5A9BE8',
+            sage:  '#7BAE7F',
+            sand:  '#D4C5A9',
+            ink:   '#1A1A2E',
+          }
+        }
+      }
+    }
+  </script>
+</head>
+
+<body class="bg-cream font-body text-bark min-h-screen">
+
+  <!-- NAV -->
+  <nav class="border-b-3 border-bark bg-cream sticky top-0 z-40">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <a href="/" class="font-display font-800 text-xl tracking-tight flex items-center gap-2">
+        <span class="text-2xl">🌿</span>
+        <span>Āyurveda<span class="text-sage">Diet</span></span>
+      </a>
+      <div class="flex gap-4 items-center">
+        <a href="/" class="text-sm font-500 hover:text-sage transition-colors">New Profile</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- TOAST CONTAINER -->
+  <div id="toast-container" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- SHARED JS -->
+  <script>
+    function showToast(msg, type = 'info') {
+      const colors = { success: 'bg-sage', error: 'bg-pitta', info: 'bg-kapha' };
+      const el = document.createElement('div');
+      el.className = `px-5 py-3 text-white text-sm font-500 rounded-none border-2 border-bark shadow-brutal pointer-events-auto transition-all ${colors[type] || colors.info}`;
+      el.textContent = msg;
+      document.getElementById('toast-container').appendChild(el);
+      setTimeout(() => el.remove(), 3500);
+    }
+  </script>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>

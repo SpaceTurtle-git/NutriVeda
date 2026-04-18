@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+{% block title %}{{ user.name }}'s Dashboard — Āyurveda Diet{% endblock %}
+
+{% block content %}
+
+<!-- Pass server data to JS safely -->
+<script>
+  const USER_DATA   = {{ user | tojson }};
+  const PLAN_DATA   = {{ plan | tojson }};
+  const DOSHA_INFO  = {{ dosha_info | tojson }};
+</script>
+
+<!-- ── HERO / DOSHA CARD ── -->
+<section class="max-w-6xl mx-auto px-6 pt-12 pb-8">
+  <div class="grid md:grid-cols-3 gap-6">
+
+    <!-- Dosha Identity Card -->
+    <div class="brutal-card p-8 space-y-4 dosha-hero-card"
+         style="background: {{ dosha_info.color }}20; border-color: {{ dosha_info.color }};">
+      <div class="flex items-start justify-between">
+        <div>
+          <p class="text-xs font-600 tracking-widest uppercase text-bark/50">Primary Dosha</p>
+          <h2 class="font-display font-800 text-5xl mt-1" style="color: {{ dosha_info.color }}">
+            {{ user.primary_dosha }}
+          </h2>
+        </div>
+        <span class="text-4xl dosha-icon">
+          {% if user.primary_dosha == 'Vata' %}🍂
+          {% elif user.primary_dosha == 'Pitta' %}🔥
+          {% else %}🌊{% endif %}
+        </span>
+      </div>
+      <div class="space-y-1 text-sm">
+        <p><span class="font-600">Element:</span> {{ dosha_info.element }}</p>
+        <p><span class="font-600">Traits:</span> {{ dosha_info.traits }}</p>
+      </div>
+      <div class="border-t-2 border-bark/20 pt-4 space-y-1 text-sm">
+        <p class="font-600 text-xs uppercase tracking-wider text-bark/50">Dietary Focus</p>
+        <p class="text-bark/80">✅ {{ dosha_info.dietary_focus }}</p>
+        <p class="text-bark/80">❌ Avoid: {{ dosha_info.avoid }}</p>
+      </div>
+    </div>
+
+    <!-- User Stats -->
+    <div class="brutal-card bg-white p-8 space-y-5">
+      <h3 class="font-display font-700 text-lg">Your Profile</h3>
+      <div class="space-y-3">
+        <div class="stat-row"><span>Name</span><strong>{{ user.name }}</strong></div>
+        <div class="stat-row"><span>Age</span><strong>{{ user.age }} yrs</strong></div>
+        <div class="stat-row"><span>Weight</span><strong>{{ user.weight }} kg</strong></div>
+        <div class="stat-row">
+          <span>Diet</span>
+          <strong>{{ 'Vegetarian 🥦' if user.dietary_preference == 'veg' else 'Non-Veg 🍗' }}</strong>
+        </div>
+      </div>
+      <button onclick="document.getElementById('update-modal').classList.remove('hidden')"
+        class="brutal-btn bg-sand text-bark w-full py-2 text-sm font-600 mt-2">
+        ✏️ Update Profile
+      </button>
+    </div>
+
+    <!-- Quick Tips -->
+    <div class="brutal-card bg-sage/10 p-8 space-y-4">
+      <h3 class="font-display font-700 text-lg">Today's Tip 🌿</h3>
+      <p id="daily-tip" class="text-bark/70 text-sm leading-relaxed italic">
+        Loading today's wisdom…
+      </p>
+      <div class="pt-2 border-t-2 border-bark/10">
+        <p class="text-xs text-bark/40 uppercase tracking-wider font-600">Plan generated</p>
+        {% if plan %}
+        <p class="text-sm font-500 mt-1">{{ plan.created_at[:10] }}</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── WEEKLY PLAN ── -->
+<section class="max-w-6xl mx-auto px-6 pb-32" id="meal-plan-section">
+  <div class="flex items-center justify-between mb-6">
+    <h2 class="font-display font-700 text-2xl">Your 7-Day Meal Plan</h2>
+    <div class="flex gap-2" id="day-tabs">
+      <!-- Tabs injected by JS -->
+    </div>
+  </div>
+
+  <!-- Meal cards for the selected day -->
+  <div id="meal-display" class="grid md:grid-cols-3 gap-6 fade-in">
+    <!-- Injected by JS -->
+  </div>
+</section>
+
+<!-- ── UPDATE PROFILE MODAL ── -->
+<div id="update-modal" class="hidden fixed inset-0 z-50 bg-bark/60 flex items-center justify-center p-4">
+  <div class="brutal-card bg-cream w-full max-w-lg p-8 space-y-6 max-h-[90vh] overflow-y-auto">
+    <div class="flex items-center justify-between">
+      <h3 class="font-display font-700 text-xl">Update Profile</h3>
+      <button onclick="document.getElementById('update-modal').classList.add('hidden')"
+        class="text-bark/40 hover:text-bark text-2xl leading-none">×</button>
+    </div>
+    <form id="update-form" class="space-y-4">
+      <div class="grid grid-cols-2 gap-4">
+        <div class="space-y-1 col-span-2">
+          <label class="brutal-label">Name</label>
+          <input type="text" id="u-name" class="brutal-input w-full" value="{{ user.name }}" />
+        </div>
+        <div class="space-y-1">
+          <label class="brutal-label">Age</label>
+          <input type="number" id="u-age" class="brutal-input w-full" value="{{ user.age }}" />
+        </div>
+        <div class="space-y-1">
+          <label class="brutal-label">Weight (kg)</label>
+          <input type="number" id="u-weight" class="brutal-input w-full" value="{{ user.weight }}" />
+        </div>
+      </div>
+      <div class="space-y-2">
+        <label class="brutal-label">Dietary Preference</label>
+        <div class="grid grid-cols-2 gap-3">
+          <label class="diet-option {% if user.dietary_preference == 'veg' %}selected{% endif %}" data-value="veg">
+            <input type="radio" name="u_diet" value="veg" class="sr-only" {% if user.dietary_preference == 'veg' %}checked{% endif %} />
+            <span>🥦</span><span class="font-600 text-sm">Vegetarian</span>
+          </label>
+          <label class="diet-option {% if user.dietary_preference == 'non-veg' %}selected{% endif %}" data-value="non-veg">
+            <input type="radio" name="u_diet" value="non-veg" class="sr-only" {% if user.dietary_preference == 'non-veg' %}checked{% endif %} />
+            <span>🍗</span><span class="font-600 text-sm">Non-Veg</span>
+          </label>
+        </div>
+      </div>
+      <button type="submit" id="update-btn" class="brutal-btn bg-bark text-cream w-full py-3 font-display font-700">
+        <span id="update-btn-text">Save & Regenerate Plan</span>
+        <span id="update-btn-loader" class="hidden">Regenerating…</span>
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- ── CHATBOT WIDGET ── -->
+<div id="chat-widget" class="fixed bottom-6 right-6 z-50">
+  <!-- Toggle Button -->
+  <button id="chat-toggle" onclick="toggleChat()"
+    class="w-14 h-14 bg-bark text-cream border-3 border-bark shadow-brutal-lg rounded-none flex items-center justify-center text-2xl hover:bg-sage transition-colors">
+    <span id="chat-icon">🌿</span>
+  </button>
+
+  <!-- Chat Window -->
+  <div id="chat-window" class="hidden brutal-card bg-cream w-80 md:w-96 mb-4 absolute bottom-16 right-0 flex flex-col"
+       style="height: 480px;">
+    <!-- Header -->
+    <div class="bg-bark text-cream p-4 flex items-center justify-between flex-shrink-0">
+      <div class="flex items-center gap-3">
+        <span class="text-xl">🌿</span>
+        <div>
+          <p class="font-display font-700 text-sm">Dhanvantari</p>
+          <p class="text-xs text-cream/60">Ayurvedic Assistant</p>
+        </div>
+      </div>
+      <button onclick="toggleChat()" class="text-cream/60 hover:text-cream text-xl leading-none">×</button>
+    </div>
+
+    <!-- Messages -->
+    <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-3 text-sm">
+      <div class="chat-msg assistant">
+        <p>Namaste, <strong>{{ user.name }}</strong>! 🙏 I'm Dhanvantari, your Ayurvedic guide.</p>
+        <p class="mt-1 text-bark/70">As a <strong>{{ user.primary_dosha }}</strong> type, I can help you understand your diet, lifestyle, and wellness. What would you like to know?</p>
+      </div>
+    </div>
+
+    <!-- Input -->
+    <div class="border-t-2 border-bark p-3 flex gap-2 flex-shrink-0">
+      <input type="text" id="chat-input" placeholder="Ask about your dosha…"
+        class="flex-1 brutal-input text-sm py-2 px-3" />
+      <button onclick="sendMessage()" id="chat-send"
+        class="brutal-btn bg-bark text-cream px-4 py-2 text-sm font-600 flex-shrink-0">
+        ↑
+      </button>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+{% endblock %}

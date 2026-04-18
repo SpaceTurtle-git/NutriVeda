@@ -1,0 +1,285 @@
+/* ── BASE ── */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background-color: #F5F0E8;
+  color: #2C2416;
+}
+
+/* ── NEO BRUTALIST UTILITIES ── */
+.brutal-card {
+  border: 2.5px solid #2C2416;
+  box-shadow: 5px 5px 0 #2C2416;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.brutal-card:hover {
+  box-shadow: 8px 8px 0 #2C2416;
+  transform: translate(-2px, -2px);
+}
+
+.shadow-brutal { box-shadow: 4px 4px 0 #2C2416; }
+.shadow-brutal-lg { box-shadow: 6px 6px 0 #2C2416; }
+
+.brutal-input {
+  border: 2.5px solid #2C2416;
+  background: #F5F0E8;
+  padding: 10px 14px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  outline: none;
+  transition: box-shadow 0.15s ease;
+}
+
+.brutal-input:focus {
+  box-shadow: 4px 4px 0 #2C2416;
+}
+
+.brutal-label {
+  font-family: 'Syne', sans-serif;
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #2C2416;
+}
+
+.brutal-btn {
+  border: 2.5px solid #2C2416;
+  box-shadow: 4px 4px 0 #2C2416;
+  font-family: 'Syne', sans-serif;
+  cursor: pointer;
+  transition: box-shadow 0.1s ease, transform 0.1s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.brutal-btn:hover {
+  box-shadow: 6px 6px 0 #2C2416;
+  transform: translate(-1px, -1px);
+}
+
+.brutal-btn:active {
+  box-shadow: 2px 2px 0 #2C2416;
+  transform: translate(2px, 2px);
+}
+
+/* ── DIET OPTION CARDS ── */
+.diet-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 16px;
+  border: 2.5px solid #2C2416;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  background: #F5F0E8;
+  box-shadow: 3px 3px 0 #2C2416;
+  user-select: none;
+}
+
+.diet-option:hover {
+  background: #D4C5A9;
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0 #2C2416;
+}
+
+.diet-option.selected {
+  background: #2C2416;
+  color: #F5F0E8;
+  box-shadow: 5px 5px 0 #7BAE7F;
+}
+
+/* ── DOSHA OPTION ROWS ── */
+.dosha-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 2px solid #2C2416;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  background: #F5F0E8;
+  font-size: 0.875rem;
+  user-select: none;
+}
+
+.dosha-option:hover { background: #D4C5A9; }
+
+.dosha-option.selected {
+  background: #2C2416;
+  color: #F5F0E8;
+}
+
+.option-dot {
+  width: 12px;
+  height: 12px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: background 0.12s;
+}
+
+.dosha-option.selected .option-dot {
+  background: #F5F0E8;
+}
+
+/* ── NAV ── */
+nav { border-bottom-width: 2.5px; }
+
+/* ── DASHBOARD STATS ── */
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+  padding: 6px 0;
+  border-bottom: 1px solid #2C241620;
+}
+
+.stat-row:last-child { border-bottom: none; }
+.stat-row span { color: #2C241680; }
+
+/* ── MEAL CARDS ── */
+.meal-card {
+  border: 2.5px solid #2C2416;
+  box-shadow: 5px 5px 0 #2C2416;
+  background: white;
+  overflow: hidden;
+  transition: all 0.15s ease;
+}
+
+.meal-card:hover {
+  box-shadow: 8px 8px 0 #2C2416;
+  transform: translate(-2px, -2px);
+}
+
+.meal-card-header {
+  padding: 10px 16px;
+  border-bottom: 2px solid #2C2416;
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.meal-card-body {
+  padding: 16px;
+}
+
+/* ── DAY TABS ── */
+.day-tab {
+  padding: 6px 14px;
+  border: 2px solid #2C2416;
+  font-family: 'Syne', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: pointer;
+  background: #F5F0E8;
+  transition: all 0.1s ease;
+  box-shadow: 2px 2px 0 #2C2416;
+}
+
+.day-tab:hover { background: #D4C5A9; }
+
+.day-tab.active {
+  background: #2C2416;
+  color: #F5F0E8;
+  box-shadow: 3px 3px 0 #7BAE7F;
+}
+
+/* ── CHAT WIDGET ── */
+#chat-window {
+  animation: slideUp 0.2s ease;
+}
+
+.chat-msg {
+  max-width: 85%;
+  padding: 10px 12px;
+  font-size: 0.825rem;
+  line-height: 1.5;
+  border: 2px solid #2C2416;
+}
+
+.chat-msg.assistant {
+  background: white;
+  margin-right: auto;
+  box-shadow: 3px 3px 0 #2C2416;
+}
+
+.chat-msg.user {
+  background: #2C2416;
+  color: #F5F0E8;
+  margin-left: auto;
+  box-shadow: 3px 3px 0 #7BAE7F;
+}
+
+.chat-msg.thinking {
+  background: #D4C5A9;
+  margin-right: auto;
+}
+
+/* ── ANIMATIONS ── */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in { animation: fadeIn 0.3s ease forwards; }
+
+/* staggered card entrance on meal display */
+#meal-display .meal-card:nth-child(1) { animation: fadeIn 0.3s ease 0.0s both; }
+#meal-display .meal-card:nth-child(2) { animation: fadeIn 0.3s ease 0.1s both; }
+#meal-display .meal-card:nth-child(3) { animation: fadeIn 0.3s ease 0.2s both; }
+
+/* ── LOADING SKELETON ── */
+.skeleton {
+  background: linear-gradient(90deg, #D4C5A9 25%, #E8E0D0 50%, #D4C5A9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+/* ── DOSHA HERO CARD ── */
+.dosha-hero-card {
+  transition: all 0.15s ease;
+}
+
+.dosha-icon {
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-6px); }
+}
+
+/* ── SCROLLBAR ── */
+#chat-messages::-webkit-scrollbar { width: 4px; }
+#chat-messages::-webkit-scrollbar-track { background: transparent; }
+#chat-messages::-webkit-scrollbar-thumb { background: #D4C5A9; border-radius: 2px; }
+
+/* ── INGREDIENT TAGS ── */
+.ingredient-tag {
+  display: inline-block;
+  font-size: 0.65rem;
+  padding: 2px 8px;
+  border: 1.5px solid #2C2416;
+  background: #F5F0E8;
+  margin: 2px;
+  font-family: 'DM Sans', sans-serif;
+}
