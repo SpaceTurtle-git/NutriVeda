@@ -1,19 +1,21 @@
-# app/routes.py (partial update – only show changes)
+# app/routes.py
 
-from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash
+from flask import Blueprint, request, jsonify, render_template, redirect, url_for, current_app
 from flask_login import login_user, logout_user, login_required, current_user
 from app import db
 from app.models import User, UserProfile, DietPlan
 from app.dosha import calculate_dosha, get_dosha_description, DOSHA_QUESTIONS
 from app.ai_service import generate_diet_plan, chat_response
+from app.meal_service import enrich_meal_plan_with_recipes
 from datetime import datetime
 import json
+import threading
 
 main = Blueprint("main", __name__)
 
 
 # ──────────────────────────────────────────────
-# AUTH ROUTES (new)
+# AUTH ROUTES
 # ──────────────────────────────────────────────
 
 @main.route("/signup", methods=["GET", "POST"])
@@ -41,7 +43,7 @@ def signup():
     profile = UserProfile(
         user_id=user.id,
         name=name,
-        age=0,                     # temporary placeholder
+        age=0,
         weight=0.0,
         dietary_preference="veg",
         questionnaire_answers="{}",
@@ -83,7 +85,7 @@ def logout():
 
 
 # ──────────────────────────────────────────────
-# NEW: PROFILE CREATION PAGE (intake form)
+# PROFILE CREATION PAGE (intake form)
 # ──────────────────────────────────────────────
 
 @main.route("/profile/new")
@@ -96,8 +98,7 @@ def profile_new():
 
 
 # ──────────────────────────────────────────────
-# MODIFIED: CREATE PROFILE (POST /api/profile)
-# Now uses current_user instead of creating new UserProfile from scratch
+# CREATE PROFILE (POST /api/profile)
 # ──────────────────────────────────────────────
 
 @main.route("/api/profile", methods=["POST"])
@@ -120,20 +121,43 @@ def create_profile():
 
     db.session.flush()
 
+    # Generate diet plan via AI (no recipes yet)
     try:
         plan_data = generate_diet_plan(profile.to_dict())
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": f"Diet plan generation failed: {str(e)}"}), 500
 
+    # Save plan with pending status
     diet_plan = DietPlan(
         user_id=profile.id,
         plan_data=json.dumps(plan_data),
         dosha_at_generation=profile.primary_dosha,
+        recipe_status="pending"
     )
     db.session.add(diet_plan)
     db.session.commit()
 
+    # Inside create_profile, after diet_plan is saved
+    # Capture the app instance BEFORE starting the thread
+    app = current_app._get_current_object()
+
+    def enrich_in_background(plan_id, plan_data, dosha):
+        with app.app_context():
+            from app.meal_service import enrich_meal_plan_with_recipes
+            from app.models import DietPlan, db
+            enriched = enrich_meal_plan_with_recipes(plan_data, dosha)
+            plan = DietPlan.query.get(plan_id)
+            if plan:
+                plan.plan_data = json.dumps(enriched)
+                plan.recipe_status = "complete"
+                db.session.commit()
+
+    thread = threading.Thread(target=enrich_in_background, args=(diet_plan.id, plan_data, profile.primary_dosha))
+    thread.daemon = True
+    thread.start()
+
+    # Return response with plan that has pending status
     return jsonify({
         "user": profile.to_dict(),
         "plan": diet_plan.to_dict(),
@@ -143,7 +167,24 @@ def create_profile():
 
 
 # ──────────────────────────────────────────────
-# PROTECT DASHBOARD AND OTHER USER-SPECIFIC ROUTES
+# POLLING ENDPOINT FOR RECIPE STATUS
+# ──────────────────────────────────────────────
+
+@main.route("/api/plan/<int:plan_id>/status", methods=["GET"])
+@login_required
+def plan_status(plan_id):
+    plan = DietPlan.query.get_or_404(plan_id)
+    # Check that the plan belongs to the logged-in user's profile
+    if plan.user.user_id != current_user.id:
+        return jsonify({"error": "Unauthorized"}), 403
+    return jsonify({
+        "status": plan.recipe_status,
+        "plan": plan.to_dict() if plan.recipe_status == "complete" else None
+    })
+
+
+# ──────────────────────────────────────────────
+# DASHBOARD
 # ──────────────────────────────────────────────
 
 @main.route("/dashboard/<int:user_id>")
@@ -163,6 +204,10 @@ def dashboard(user_id):
     )
 
 
+# ──────────────────────────────────────────────
+# API: GET PROFILE
+# ──────────────────────────────────────────────
+
 @main.route("/api/profile/<int:user_id>", methods=["GET"])
 @login_required
 def get_profile(user_id):
@@ -177,10 +222,13 @@ def get_profile(user_id):
     })
 
 
+# ──────────────────────────────────────────────
+# API: UPDATE PROFILE (regenerate plan)
+# ──────────────────────────────────────────────
+
 @main.route("/api/profile/<int:user_id>", methods=["PUT"])
 @login_required
 def update_profile(user_id):
-    """Update profile, recalculate dosha, regenerate and overwrite diet plan."""
     # Ensure the profile belongs to the logged-in user
     profile = UserProfile.query.get_or_404(user_id)
     if profile.user_id != current_user.id:
@@ -206,33 +254,35 @@ def update_profile(user_id):
     # Regenerate plan
     try:
         plan_data = generate_diet_plan(profile.to_dict())
+        # Enrich with recipes synchronously for update (or you could also do async)
+        plan_data = enrich_meal_plan_with_recipes(plan_data, profile.primary_dosha)
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": f"Diet plan generation failed: {str(e)}"}), 500
 
-    # Save new diet plan
+    # Save new diet plan (complete with recipes)
     new_plan = DietPlan(
         user_id=profile.id,
         plan_data=json.dumps(plan_data),
         dosha_at_generation=profile.primary_dosha,
+        recipe_status="complete"
     )
     db.session.add(new_plan)
     db.session.commit()
 
-    # ✅ MUST return a response
     return jsonify({
         "user": profile.to_dict(),
         "plan": new_plan.to_dict(),
         "dosha_info": get_dosha_description(profile.primary_dosha),
     })
 
+
 # ──────────────────────────────────────────────
-# LANDING PAGE (no intake form, just hero + buttons)
+# LANDING PAGE
 # ──────────────────────────────────────────────
 
 @main.route("/")
 def index():
-    # If already logged in, redirect to their profile new or dashboard
     if current_user.is_authenticated:
         if current_user.profile and current_user.profile.age > 0:
             return redirect(url_for("main.dashboard", user_id=current_user.profile.id))
@@ -240,8 +290,9 @@ def index():
             return redirect(url_for("main.profile_new"))
     return render_template("landing.html")
 
+
 # ──────────────────────────────────────────────
-# CHAT BOT
+# CHATBOT
 # ──────────────────────────────────────────────
 
 @main.route("/api/chat", methods=["POST"])
@@ -259,3 +310,12 @@ def chat():
         return jsonify({"error": f"Chat failed: {str(e)}"}), 500
 
     return jsonify({"reply": reply})
+
+
+# ──────────────────────────────────────────────
+# GUIDE PAGE
+# ──────────────────────────────────────────────
+
+@main.route("/guide")
+def guide():
+    return render_template("guide.html")

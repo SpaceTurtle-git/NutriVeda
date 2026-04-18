@@ -62,16 +62,17 @@ class UserProfile(db.Model):
 
 
 # ──────────────────────────────────────────────
-# DietPlan (unchanged)
+# DietPlan
 # ──────────────────────────────────────────────
 class DietPlan(db.Model):
     __tablename__ = "diet_plans"
 
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user_profiles.id"), nullable=False)
-    plan_data = db.Column(db.Text, nullable=False)
+    plan_data = db.Column(db.Text, nullable=False)   # JSON string of 7-day plan (may have recipes or not)
     dosha_at_generation = db.Column(db.String(20), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    recipe_status = db.Column(db.String(20), default="pending")  # 'pending', 'complete', 'failed'
 
     user = db.relationship("UserProfile", back_populates="diet_plans")
 
@@ -82,4 +83,5 @@ class DietPlan(db.Model):
             "plan_data": json.loads(self.plan_data),
             "dosha_at_generation": self.dosha_at_generation,
             "created_at": self.created_at.isoformat(),
+            "recipe_status": self.recipe_status,
         }

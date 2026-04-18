@@ -25,8 +25,11 @@ def generate_diet_plan(user_profile: dict) -> dict:
     diet_pref = user_profile["dietary_preference"]
 
     system_prompt = """You are an expert Ayurvedic nutritionist and dietitian with 20+ years of experience.
-Your task is to generate personalized 7-day Ayurvedic meal plans.
-You MUST respond with ONLY valid JSON — no markdown, no code fences, no explanation, no preamble.
+YYour task is to generate a 7-day meal plan using ONLY real dish names that exist in TheMealDB database.
+Examples of acceptable meal names: "Chicken Curry", "Vegetable Soup", "Chicken Teriyaki", "Spaghetti Arrabiata", "Beef Stew", "Oatmeal with Berries", "Scrambled Eggs", "Greek Salad", "Lentil Soup", "Fish and Chips", "Pancakes", "Omelette".
+DO NOT use generic names like "Warm Porridge", "Grounding Dinner", "Spiced Tea", "Digestive Lassi".
+Each meal name must be a specific, searchable dish.
+Output ONLY valid JSON as specified. No markdown, no extra text.
 The JSON structure must be exactly:
 {
   "dosha_summary": "2-3 sentence summary of the dosha and dietary philosophy",

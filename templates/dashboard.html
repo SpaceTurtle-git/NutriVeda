@@ -8,6 +8,20 @@
   const USER_DATA   = {{ user | tojson }};
   const PLAN_DATA   = {{ plan | tojson }};
   const DOSHA_INFO  = {{ dosha_info | tojson }};
+  if (PLAN_DATA && PLAN_DATA.recipe_status === 'pending') {
+    const planId = PLAN_DATA.id;
+    const pollInterval = setInterval(async () => {
+        const res = await fetch(`/api/plan/${planId}/status`);
+        const data = await res.json();
+        if (data.status === 'complete') {
+            clearInterval(pollInterval);
+            // Reload the plan data and re-render
+            window.PLAN_DATA = data.plan;
+            // Re-initialize the dashboard rendering (you can just reload the page or update dynamically)
+            location.reload();
+        }
+    }, 2000);
+}
 </script>
 
 <!-- ── HERO / DOSHA CARD ── -->
@@ -69,6 +83,9 @@
         <p class="text-xs text-bark/40 uppercase tracking-wider font-600">Plan generated</p>
         {% if plan %}
         <p class="text-sm font-500 mt-1">{{ plan.created_at[:10] }}</p>
+        <a href="{{ url_for('main.guide') }}" class="brutal-btn bg-sage text-cream w-full py-2 text-sm font-600 mt-2 text-center inline-block">
+  📘 Learn Ayurveda
+</a>
         {% endif %}
       </div>
     </div>
@@ -138,6 +155,18 @@
     </form>
   </div>
 </div>
+<!-- ── RECIPE MODAL (new) ── -->
+<div id="recipe-modal" class="hidden fixed inset-0 z-50 bg-bark/80 flex items-center justify-center p-4">
+  <div class="brutal-card bg-cream w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+    <div class="sticky top-0 bg-cream p-4 border-b-2 border-bark flex justify-between items-center">
+      <h3 id="recipe-title" class="font-display font-700 text-xl">Recipe Title</h3>
+      <button onclick="closeRecipeModal()" class="text-bark/60 hover:text-bark text-2xl leading-none">×</button>
+    </div>
+    <div id="recipe-content" class="p-6 space-y-4">
+      <!-- Recipe details injected here -->
+    </div>
+  </div>
+</div>
 
 <!-- ── CHATBOT WIDGET ── -->
 <div id="chat-widget" class="fixed bottom-6 right-6 z-50">
@@ -155,7 +184,7 @@
       <div class="flex items-center gap-3">
         <span class="text-xl">🌿</span>
         <div>
-          <p class="font-display font-700 text-sm">Dhanvantari</p>
+          <p class="font-display font-700 text-sm">KimJongGoon</p>
           <p class="text-xs text-cream/60">Ayurvedic Assistant</p>
         </div>
       </div>
@@ -165,7 +194,7 @@
     <!-- Messages -->
     <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-3 text-sm">
       <div class="chat-msg assistant">
-        <p>Namaste, <strong>{{ user.name }}</strong>! 🙏 I'm Dhanvantari, your Ayurvedic guide.</p>
+        <p>Namaste, <strong>{{ user.name }}</strong>! 🙏 I'm KimJongGoon, your Ayurvedic guide.</p>
         <p class="mt-1 text-bark/70">As a <strong>{{ user.primary_dosha }}</strong> type, I can help you understand your diet, lifestyle, and wellness. What would you like to know?</p>
       </div>
     </div>
