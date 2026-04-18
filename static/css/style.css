@@ -283,3 +283,18 @@ nav { border-bottom-width: 2.5px; }
   margin: 2px;
   font-family: 'DM Sans', sans-serif;
 }
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .pdf-content, .pdf-content * {
+    visibility: visible;
+  }
+  .pdf-content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+  }
+}
