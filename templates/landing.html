@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Welcome to ĀyurvedaDiet{% endblock %}
+
+{% block content %}
+<section class="max-w-6xl mx-auto px-6 pt-20 pb-24 text-center">
+  <div class="inline-block bg-sage text-white text-xs font-600 tracking-widest uppercase px-3 py-1 border-2 border-bark mb-6">
+    Ancient Wisdom · Modern Nutrition
+  </div>
+  <h1 class="font-display font-800 text-5xl md:text-7xl leading-tight">
+    Eat right for <br/>
+    <span class="text-vata">your</span> body,<br/>
+    <span class="text-sage">your</span> dosha.
+  </h1>
+  <p class="text-bark/70 text-lg max-w-xl mx-auto mt-6 mb-10">
+    Answer a few questions, discover your Ayurvedic constitution, and receive a personalised 7-day meal plan crafted by AI.
+  </p>
+  <div class="flex justify-center gap-4">
+    <a href="{{ url_for('main.login') }}" class="brutal-btn bg-white text-bark px-8 py-3 font-display font-700">Login</a>
+    <a href="{{ url_for('main.signup') }}" class="brutal-btn bg-bark text-cream px-8 py-3 font-display font-700">Sign Up</a>
+  </div>
+</section>
+{% endblock %}
