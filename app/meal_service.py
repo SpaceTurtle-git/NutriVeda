@@ -4,11 +4,31 @@ import requests
 import logging
 import re
 from typing import Dict, List, Optional
+import json
+from pathlib import Path
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 MEALDB_BASE_URL = "https://www.themealdb.com/api/json/v1/1/"
+
+#MEAL LOOKUP
+# Load the local meal database once when the service starts
+MEAL_NAMES_DB = None
+def load_meal_names_db():
+    global MEAL_NAMES_DB
+    if MEAL_NAMES_DB is None:
+        db_path = Path(__file__).parent.parent / "meal_names.json"
+        with open(db_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            MEAL_NAMES_DB = set(data.get("meal_names", []))
+    return MEAL_NAMES_DB
+
+def is_valid_meal_name(meal_name: str) -> bool:
+    """Check if a meal name exists in our local database."""
+    meal_names = load_meal_names_db()
+    return meal_name in meal_names
+
 
 def clean_meal_name(name: str) -> str:
     """Remove common filler words and keep the main noun phrase."""

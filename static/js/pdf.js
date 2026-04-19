@@ -106,7 +106,7 @@ document.getElementById('download-pdf-btn')?.addEventListener('click', function(
   // Options for html2pdf
   const opt = {
     margin:        [0.5, 0.5, 0.5, 0.5], // top, right, bottom, left (inches)
-    filename:     `AyurvedaDiet_${user.name.replace(/\s/g, '_')}_${new Date().toISOString().slice(0,10)}.pdf`,
+    filename:     `ĀyurvedaDiet_${user.name.replace(/\s/g, '_')}_${new Date().toISOString().slice(0,10)}.pdf`,
     image:        { type: 'jpeg', quality: 0.98 },
     html2canvas:  { scale: 2, letterRendering: true, useCORS: true },
     jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
