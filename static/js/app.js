@@ -37,6 +37,7 @@ if (intakeForm) {
     });
 
     const dietPref = document.querySelector('input[name="dietary_preference"]:checked')?.value;
+    const cuisinePref = document.querySelector('input[name="cuisine_preference"]:checked')?.value;
 
     // Validate
     if (!document.getElementById('name').value.trim()) {
@@ -51,7 +52,10 @@ if (intakeForm) {
     if (!dietPref) {
       showToast('Please select a dietary preference.', 'error'); return;
     }
-    if (Object.keys(answers).length < 3) {
+    if (!cuisinePref) {
+      showToast('Please select a cuisine preference.', 'error'); return;
+    }
+    if (Object.keys(answers).length < 9) {
       showToast('Please answer all 9 dosha questions.', 'error'); return;
     }
 
@@ -65,6 +69,7 @@ if (intakeForm) {
       age: parseInt(document.getElementById('age').value),
       weight: parseFloat(document.getElementById('weight').value),
       dietary_preference: dietPref,
+      cuisine_preference: cuisinePref,
       answers,
     };
 
@@ -248,10 +253,21 @@ function closeRecipeModal() {
 /* ── DASHBOARD: UPDATE FORM ── */
 const updateForm = document.getElementById('update-form');
 if (updateForm && typeof USER_DATA !== 'undefined') {
-  // Sync diet option selection on update form
-  document.querySelectorAll('#update-modal .diet-option').forEach(label => {
+  // Handle dietary preference group (veg/non-veg)
+  document.querySelectorAll('#update-modal [data-group="diet"] .diet-option').forEach(label => {
     label.addEventListener('click', () => {
-      document.querySelectorAll('#update-modal .diet-option').forEach(l => l.classList.remove('selected'));
+      const group = label.closest('[data-group="diet"]');
+      group.querySelectorAll('.diet-option').forEach(l => l.classList.remove('selected'));
+      label.classList.add('selected');
+      label.querySelector('input').checked = true;
+    });
+  });
+
+  // Handle cuisine preference group (indian/international)
+  document.querySelectorAll('#update-modal [data-group="cuisine"] .diet-option').forEach(label => {
+    label.addEventListener('click', () => {
+      const group = label.closest('[data-group="cuisine"]');
+      group.querySelectorAll('.diet-option').forEach(l => l.classList.remove('selected'));
       label.classList.add('selected');
       label.querySelector('input').checked = true;
     });
@@ -265,6 +281,7 @@ if (updateForm && typeof USER_DATA !== 'undefined') {
     const btn       = document.getElementById('update-btn');
 
     const dietPref = document.querySelector('input[name="u_diet"]:checked')?.value;
+    const cuisinePref = document.querySelector('input[name="u_cuisine"]:checked')?.value;
 
     btnText.classList.add('hidden');
     btnLoader.classList.remove('hidden');
@@ -275,6 +292,7 @@ if (updateForm && typeof USER_DATA !== 'undefined') {
       age: parseInt(document.getElementById('u-age').value),
       weight: parseFloat(document.getElementById('u-weight').value),
       dietary_preference: dietPref,
+      cuisine_preference: cuisinePref,   // <-- added
     };
 
     try {

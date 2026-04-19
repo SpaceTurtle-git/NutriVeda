@@ -33,6 +33,8 @@ class User(UserMixin, db.Model):
 class UserProfile(db.Model):
     __tablename__ = "user_profiles"
 
+    cuisine_preference = db.Column(db.String(20), nullable=False, default="international")   # 'indian' or 'international'
+
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), unique=True, nullable=False)
     name = db.Column(db.String(100), nullable=False)
@@ -58,6 +60,7 @@ class UserProfile(db.Model):
             "primary_dosha": self.primary_dosha,
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
+            "cuisine_preference": self.cuisine_preference,
         }
 
 

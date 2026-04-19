@@ -136,17 +136,39 @@
         </div>
       </div>
       <div class="space-y-2">
-        <label class="brutal-label">Dietary Preference</label>
-        <div class="grid grid-cols-2 gap-3">
-          <label class="diet-option {% if user.dietary_preference == 'veg' %}selected{% endif %}" data-value="veg">
-            <input type="radio" name="u_diet" value="veg" class="sr-only" {% if user.dietary_preference == 'veg' %}checked{% endif %} />
-            <span>🥦</span><span class="font-600 text-sm">Vegetarian</span>
-          </label>
-          <label class="diet-option {% if user.dietary_preference == 'non-veg' %}selected{% endif %}" data-value="non-veg">
-            <input type="radio" name="u_diet" value="non-veg" class="sr-only" {% if user.dietary_preference == 'non-veg' %}checked{% endif %} />
-            <span>🍗</span><span class="font-600 text-sm">Non-Veg</span>
-          </label>
-        </div>
+<!-- Dietary Preference group -->
+<div class="space-y-2">
+  <label class="brutal-label">Dietary Preference</label>
+  <div class="grid grid-cols-2 gap-3" data-group="diet">
+    <label class="diet-option {% if user.dietary_preference == 'veg' %}selected{% endif %}" data-value="veg">
+      <input type="radio" name="u_diet" value="veg" class="sr-only" {% if user.dietary_preference == 'veg' %}checked{% endif %} />
+      <span>🥦</span><span class="font-600 text-sm">Vegetarian</span>
+    </label>
+    <label class="diet-option {% if user.dietary_preference == 'non-veg' %}selected{% endif %}" data-value="non-veg">
+      <input type="radio" name="u_diet" value="non-veg" class="sr-only" {% if user.dietary_preference == 'non-veg' %}checked{% endif %} />
+      <span>🍗</span><span class="font-600 text-sm">Non-Veg</span>
+    </label>
+  </div>
+</div>
+
+<!-- Cuisine Preference group -->
+<div class="space-y-2">
+  <label class="brutal-label">Cuisine Preference</label>
+  <div class="grid grid-cols-2 gap-3" data-group="cuisine">
+    <label class="diet-option {% if user.cuisine_preference == 'indian' %}selected{% endif %}" data-value="indian">
+      <input type="radio" name="u_cuisine" value="indian" class="sr-only" {% if user.cuisine_preference == 'indian' %}checked{% endif %} />
+      <span>🇮🇳</span><span class="font-600 text-sm">Indian</span>
+    </label>
+    <label class="diet-option {% if user.cuisine_preference == 'international' %}selected{% endif %}" data-value="international">
+      <input type="radio" name="u_cuisine" value="international" class="sr-only" {% if user.cuisine_preference == 'international' %}checked{% endif %} />
+      <span>🌍</span><span class="font-600 text-sm">International</span>
+    </label>
+  </div>
+</div>
+        <div class="stat-row">
+        <span>Cuisine</span>
+        <strong>{{ 'Indian 🇮🇳' if user.cuisine_preference == 'indian' else 'International 🌍' }}</strong>
+      </div>
       </div>
       <button type="submit" id="update-btn" class="brutal-btn bg-bark text-cream w-full py-3 font-display font-700">
         <span id="update-btn-text">Save & Regenerate Plan</span>

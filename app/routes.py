@@ -110,11 +110,15 @@ def create_profile():
         if field not in data:
             return jsonify({"error": f"Missing field: {field}"}), 400
 
+    # Get cuisine preference (default to international if not provided)
+    cuisine_pref = data.get("cuisine_preference", "international")
+
     # Update the existing profile attached to current_user
     profile = current_user.profile
     profile.age = int(data["age"])
     profile.weight = float(data["weight"])
     profile.dietary_preference = data["dietary_preference"]
+    profile.cuisine_preference = cuisine_pref   # <-- NEW
     profile.questionnaire_answers = json.dumps(data["answers"])
     profile.primary_dosha = calculate_dosha(data["answers"])
     profile.updated_at = datetime.utcnow()
@@ -245,6 +249,8 @@ def update_profile(user_id):
         profile.weight = float(data["weight"])
     if "dietary_preference" in data:
         profile.dietary_preference = data["dietary_preference"]
+    if "cuisine_preference" in data:          # <-- NEW
+        profile.cuisine_preference = data["cuisine_preference"]
     if "answers" in data:
         profile.questionnaire_answers = json.dumps(data["answers"])
         profile.primary_dosha = calculate_dosha(data["answers"])
