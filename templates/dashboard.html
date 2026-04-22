@@ -190,6 +190,21 @@
   </div>
 </div>
 
+<!-- Swap Meal Modal -->
+<div id="swap-modal" class="hidden fixed inset-0 z-50 bg-bark/80 flex items-center justify-center p-4">
+  <div class="brutal-card bg-cream w-full max-w-md">
+    <div class="p-4 border-b-2 border-bark flex justify-between items-center">
+      <h3 class="font-display font-700 text-xl">Swap Meal</h3>
+      <button onclick="closeSwapModal()" class="text-2xl">×</button>
+    </div>
+    <div class="p-6 space-y-4">
+      <p class="text-sm">Tell us how you'd like to change this meal (optional):</p>
+      <textarea id="swap-custom-request" rows="3" class="brutal-input w-full" placeholder="e.g., lighter, more protein, no garlic, quicker to cook..."></textarea>
+      <button id="confirm-swap-btn" class="brutal-btn bg-sage text-cream w-full py-2 font-600">Generate Alternative</button>
+    </div>
+  </div>
+</div>  
+
 <!-- ── CHATBOT WIDGET ── -->
 <div id="chat-widget" class="fixed bottom-6 right-6 z-50">
   <!-- Toggle Button -->

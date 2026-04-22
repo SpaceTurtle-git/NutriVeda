@@ -10,6 +10,9 @@ from app.meal_service import enrich_meal_plan_with_recipes
 from datetime import datetime
 import json
 import threading
+import logging
+logger = logging.getLogger(__name__)
+
 
 main = Blueprint("main", __name__)
 
@@ -150,12 +153,20 @@ def create_profile():
         with app.app_context():
             from app.meal_service import enrich_meal_plan_with_recipes
             from app.models import DietPlan, db
-            enriched = enrich_meal_plan_with_recipes(plan_data, dosha)
-            plan = DietPlan.query.get(plan_id)
-            if plan:
-                plan.plan_data = json.dumps(enriched)
-                plan.recipe_status = "complete"
-                db.session.commit()
+            try:
+                enriched = enrich_meal_plan_with_recipes(plan_data, dosha)
+                plan = DietPlan.query.get(plan_id)
+                if plan:
+                    plan.plan_data = json.dumps(enriched)
+                    plan.recipe_status = "complete"
+                    db.session.commit()
+                    logger.info(f"✅ Plan {plan_id} enriched successfully.")
+            except Exception as e:
+                logger.error(f"❌ Enrichment failed for plan {plan_id}: {e}")
+                plan = DietPlan.query.get(plan_id)
+                if plan:
+                    plan.recipe_status = "failed"
+                    db.session.commit()
 
     thread = threading.Thread(target=enrich_in_background, args=(diet_plan.id, plan_data, profile.primary_dosha))
     thread.daemon = True
@@ -325,3 +336,67 @@ def chat():
 @main.route("/guide")
 def guide():
     return render_template("guide.html")
+
+# ──────────────────────────────────────────────
+# SWAP FUNCTION
+# ──────────────────────────────────────────────
+@main.route("/api/swap-meal", methods=["POST"])
+@login_required
+def swap_meal():
+    data = request.get_json()
+    user_id = data.get("user_id")
+    day_index = data.get("day_index")      # 0-6
+    meal_type = data.get("meal_type")      # breakfast/lunch/dinner
+    custom_request = data.get("custom_request", "")
+
+    # Get user profile and latest plan
+    profile = UserProfile.query.get_or_404(user_id)
+    if profile.user_id != current_user.id:
+        return jsonify({"error": "Unauthorized"}), 403
+
+    latest_plan = DietPlan.query.filter_by(user_id=profile.id).order_by(DietPlan.created_at.desc()).first()
+    if not latest_plan:
+        return jsonify({"error": "No diet plan found"}), 404
+
+    plan_dict = json.loads(latest_plan.plan_data)
+    days = plan_dict.get("days", [])
+    if day_index >= len(days) or meal_type not in days[day_index]:
+        return jsonify({"error": "Invalid day or meal type"}), 400
+
+    # Generate alternative meal
+    from app.ai_service import generate_alternative_meal
+    try:
+        new_meal = generate_alternative_meal(profile.to_dict(), meal_type, custom_request)
+    except Exception as e:
+        return jsonify({"error": f"AI generation failed: {str(e)}"}), 500
+
+    # Enrich with recipe data (synchronous, single meal)
+    from app.meal_service import search_meal_by_name, generate_fallback_recipe
+    recipe = search_meal_by_name(new_meal.get("name", ""))
+    if recipe:
+        new_meal["recipe"] = recipe
+        new_meal["has_recipe"] = True
+    else:
+        fallback = generate_fallback_recipe(new_meal.get("name", ""), profile.primary_dosha)
+        new_meal["recipe"] = fallback
+        new_meal["has_recipe"] = True
+
+    # Replace the meal in plan
+    days[day_index][meal_type] = new_meal
+    plan_dict["days"] = days
+
+    # Save as a new DietPlan entry (keeping history)
+    new_plan = DietPlan(
+        user_id=profile.id,
+        plan_data=json.dumps(plan_dict),
+        dosha_at_generation=profile.primary_dosha,
+        recipe_status="complete"
+    )
+    db.session.add(new_plan)
+    db.session.commit()
+
+    return jsonify({
+        "success": True,
+        "meal": new_meal,
+        "plan_id": new_plan.id
+    })

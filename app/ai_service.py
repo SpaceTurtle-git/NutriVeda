@@ -22,7 +22,7 @@ def filter_indian_meals(meal_names):
         return ["Chicken Curry", "Palak Paneer", "Masala Dosa", "Dal Makhani", "Vegetable Biryani"]
     return filtered
 
-def get_meal_names_list(max_names=200, cuisine="international"):
+def get_meal_names_list(max_names=400, cuisine="international"):
     """Load meal names and filter by cuisine if needed."""
     global _MEAL_NAMES_LIST
     if _MEAL_NAMES_LIST is None:
@@ -145,3 +145,54 @@ def chat_response(messages, user_context=None):
     except Exception as e:
         print(f"Chat error: {e}")
         raise Exception(f"Chat API error: {str(e)}")
+
+def generate_alternative_meal(user_profile: dict, meal_type: str, custom_request: str = "") -> dict:
+    client = _get_client()
+    dosha = user_profile["primary_dosha"]
+    diet_pref = user_profile["dietary_preference"]
+    cuisine_pref = user_profile.get("cuisine_preference", "international")
+    meal_names_list = get_meal_names_list(max_names=200, cuisine=cuisine_pref)
+    meal_names_str = ", ".join(meal_names_list)
+
+    system_prompt = f"""You are an expert Ayurvedic nutritionist.
+    
+    You MUST select meal names ONLY from the following list. DO NOT invent any other name.
+Valid meal names: {meal_names_str}
+
+If a suitable meal is not in the list, pick the closest one from the list.
+NEVER output a name not in this list.
+Generate ONE {meal_type} meal that is appropriate for:
+- Dosha: {dosha}
+- Diet: {diet_pref} ({"includes meat" if diet_pref == "non-veg" else "vegetarian"})
+- Cuisine: {"Indian only" if cuisine_pref == "indian" else "any international"}
+User special request: {custom_request if custom_request else "None"}
+
+Output ONLY valid JSON with this structure:
+{{
+  "name": "Real dish name from TheMealDB",
+  "description": "Brief Ayurvedic description",
+  "ingredients": ["ingredient1", "ingredient2"],
+  "benefits": "Ayurvedic benefit"
+}}
+Do not add markdown or extra text."""
+
+    user_prompt = f"Generate a {meal_type} meal for {dosha} dosha, {diet_pref} diet, {cuisine_pref} cuisine. User request: {custom_request}"
+
+    completion = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt}
+        ],
+        temperature=0.8,
+        max_tokens=500,
+    )
+
+    raw = completion.choices[0].message.content.strip()
+    raw = re.sub(r"^```(?:json)?\s*", "", raw)
+    raw = re.sub(r"\s*```$", "", raw)
+    try:
+        meal = json.loads(raw)
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Invalid JSON: {e}\nRaw: {raw[:200]}")
+    return meal

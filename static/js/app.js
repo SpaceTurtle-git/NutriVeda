@@ -146,6 +146,7 @@ function renderMeals(day) {
   const mealEmoji = { breakfast: '🌅', lunch: '☀️', dinner: '🌙' };
 
   container.innerHTML = '';
+  
   ['breakfast', 'lunch', 'dinner'].forEach(mealType => {
     const meal = day[mealType];
     if (!meal) return;
@@ -153,14 +154,33 @@ function renderMeals(day) {
     const card = document.createElement('div');
     card.className = 'meal-card';
 
-    // Check if recipe data is available
-    const hasRecipe = meal.has_recipe === true;
-    const recipeBtn = hasRecipe ? 
-      `<button onclick="showRecipeModal('${mealType}', ${day.day})" class="brutal-btn bg-sage text-cream text-xs px-3 py-1 mt-3">📖 View Full Recipe</button>` : 
-      `<div class="text-xs text-bark/50 italic mt-3"> ⏳ Generating Recipe Details</div>`;
+    // Safe check for recipe availability
+    const hasRecipe = meal.has_recipe === true || (meal.recipe && Object.keys(meal.recipe).length > 0);
+    
+    // Ensure day.day exists; if not, use a fallback (e.g., from index)
+    const dayNumber = day.day || (day.day_name ? parseInt(day.day_name) : 1);
+    
+    const swapBtn = `<button onclick="openSwapModal(${dayNumber}, '${mealType}')" class="brutal-btn bg-sand text-bark text-xs px-3 py-1">🔄 Swap</button>`;
+    
+    let actionButtons = '';
+    if (hasRecipe) {
+      actionButtons = `
+        <div class="flex gap-2 mt-3">
+          <button onclick="showRecipeModal('${mealType}', ${dayNumber})" class="brutal-btn bg-sage text-cream text-xs px-3 py-1">📖 View Full Recipe</button>
+          ${swapBtn}
+        </div>
+      `;
+    } else {
+      actionButtons = `
+        <div class="flex gap-2 mt-3">
+          <div class="text-xs text-bark/50 italic">⚠️ Recipe details not available</div>
+          ${swapBtn}
+        </div>
+      `;
+    }
 
     const ingredientHTML = (meal.ingredients || [])
-      .map(ing => `<span class="ingredient-tag">${ing}</span>`)
+      .map(ing => `<span class="ingredient-tag">${escapeHtml(ing)}</span>`)
       .join('');
 
     card.innerHTML = `
@@ -168,17 +188,28 @@ function renderMeals(day) {
         ${mealEmoji[mealType]} ${mealType.toUpperCase()}
       </div>
       <div class="meal-card-body space-y-3">
-        <h4 class="font-display font-700 text-base leading-tight">${meal.name}</h4>
-        <p class="text-xs text-bark/60 leading-relaxed">${meal.description}</p>
+        <h4 class="font-display font-700 text-base leading-tight">${escapeHtml(meal.name)}</h4>
+        <p class="text-xs text-bark/60 leading-relaxed">${escapeHtml(meal.description)}</p>
         <div>${ingredientHTML}</div>
         <div class="border-t-2 border-bark/10 pt-3">
           <p class="text-xs font-600 text-sage uppercase tracking-wider mb-1">Benefits</p>
-          <p class="text-xs text-bark/70 italic">${meal.benefits}</p>
+          <p class="text-xs text-bark/70 italic">${escapeHtml(meal.benefits)}</p>
         </div>
-        ${recipeBtn}
+        ${actionButtons}
       </div>
     `;
     container.appendChild(card);
+  });
+}
+
+// Helper function (add at the bottom of app.js)
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/[&<>]/g, function(m) {
+    if (m === '&') return '&amp;';
+    if (m === '<') return '&lt;';
+    if (m === '>') return '&gt;';
+    return m;
   });
 }
 
@@ -191,10 +222,12 @@ function showRecipeModal(mealType, dayNumber) {
     showToast('Recipe data not available', 'error');
     return;
   }
-  
+
   const day = currentPlanData.plan_data.days.find(d => d.day === dayNumber);
-  if (!day) return;
-  
+  if (!day) {
+    showToast('Day not found', 'error');
+    return;
+  }
   const meal = day[mealType];
   if (!meal || !meal.recipe) {
     showToast('Recipe details not found', 'error');
@@ -320,3 +353,43 @@ if (updateForm && typeof USER_DATA !== 'undefined') {
     }
   });
 }
+
+let swapDay = null;
+let swapMealType = null;
+
+function openSwapModal(day, mealType) {
+    swapDay = day;
+    swapMealType = mealType;
+    document.getElementById('swap-modal').classList.remove('hidden');
+    document.getElementById('swap-custom-request').value = '';
+}
+
+function closeSwapModal() {
+    document.getElementById('swap-modal').classList.add('hidden');
+}
+
+document.getElementById('confirm-swap-btn')?.addEventListener('click', async () => {
+    const customRequest = document.getElementById('swap-custom-request').value;
+    closeSwapModal();
+    showToast('Generating alternative meal...', 'info');
+    
+    try {
+        const res = await fetch('/api/swap-meal', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                user_id: USER_DATA.id,
+                day_index: swapDay - 1,
+                meal_type: swapMealType,
+                custom_request: customRequest
+            })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+        
+        // Force a full page reload from the server
+        window.location.href = `/dashboard/${USER_DATA.id}`;
+    } catch (err) {
+        showToast(err.message, 'error');
+    }
+});
