@@ -500,3 +500,39 @@ def doctor_view_patient(user_id):
         "plan": latest_plan.to_dict() if latest_plan else None,
         "dosha_info": get_dosha_description(profile.primary_dosha)
     })
+
+import csv
+from io import StringIO
+from flask import make_response
+
+@main.route("/doctor/export-csv")
+@login_required
+def export_patients_csv():
+    if current_user.role != "doctor":
+        return "Unauthorized", 403
+    
+    patients = User.query.filter_by(role="patient").all()
+    data = []
+    for p in patients:
+        if p.profile and p.profile.age > 0:
+            latest_plan = DietPlan.query.filter_by(user_id=p.profile.id).order_by(DietPlan.created_at.desc()).first()
+            data.append({
+                "Name": p.profile.name,
+                "Email": p.email,
+                "Age": p.profile.age,
+                "Weight": p.profile.weight,
+                "Diet": p.profile.dietary_preference,
+                "Cuisine": p.profile.cuisine_preference,
+                "Primary Dosha": p.profile.primary_dosha,
+                "Plan Generated": latest_plan.created_at.strftime("%Y-%m-%d") if latest_plan else "",
+                "Joined": p.created_at.strftime("%Y-%m-%d")
+            })
+    
+    si = StringIO()
+    writer = csv.DictWriter(si, fieldnames=data[0].keys() if data else [])
+    writer.writeheader()
+    writer.writerows(data)
+    output = make_response(si.getvalue())
+    output.headers["Content-Disposition"] = "attachment; filename=patients.csv"
+    output.headers["Content-type"] = "text/csv"
+    return output
