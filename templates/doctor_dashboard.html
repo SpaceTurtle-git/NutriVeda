@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Doctor Dashboard — Nutriveda{% endblock %}
+{% block content %}
+<section class="max-w-6xl mx-auto px-6 py-12">
+  <h1 class="font-display font-700 text-3xl mb-8">Patient List</h1>
+  <div class="space-y-4">
+    {% for patient in patients %}
+    <div class="brutal-card bg-white p-4 flex justify-between items-center">
+      <div>
+        <p class="font-display font-700">{{ patient.profile.name }}</p>
+        <p class="text-sm text-bark/60">{{ patient.email }}</p>
+        <p class="text-xs">Dosha: {{ patient.profile.primary_dosha }} | Age: {{ patient.profile.age }} | Weight: {{ patient.profile.weight }} kg</p>
+      </div>
+      <button onclick="viewPatient({{ patient.id }})" class="brutal-btn bg-sage text-cream px-4 py-2 text-sm">View Details</button>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- Patient Details Modal -->
+<div id="patient-modal" class="hidden fixed inset-0 z-50 bg-bark/80 flex items-center justify-center p-4">
+  <div class="brutal-card bg-cream w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+    <div class="sticky top-0 bg-cream p-4 border-b-2 border-bark flex justify-between items-center">
+      <h3 id="modal-title" class="font-display font-700 text-xl">Patient Details</h3>
+      <button onclick="closePatientModal()" class="text-2xl">×</button>
+    </div>
+    <div id="patient-content" class="p-6 space-y-4">
+      <!-- Content loaded via JS -->
+    </div>
+  </div>
+</div>
+
+<script>
+  async function viewPatient(patientId) {
+    const res = await fetch(`/api/doctor/patient/${patientId}`);
+    const data = await res.json();
+    if (!res.ok) {
+      showToast(data.error || 'Failed to load', 'error');
+      return;
+    }
+    const profile = data.profile;
+    const plan = data.plan;
+    const doshaInfo = data.dosha_info;
+    
+    // Build HTML for the modal
+    let planHtml = '<div class="border-t-2 border-bark/20 pt-4"><h4 class="font-display font-700">Latest Diet Plan</h4>';
+    if (plan && plan.plan_data && plan.plan_data.days) {
+      planHtml += `<p><strong>Generated:</strong> ${plan.created_at.slice(0,10)}</p>`;
+      // Show first day sample
+      const firstDay = plan.plan_data.days[0];
+      planHtml += `<div class="grid grid-cols-3 gap-2 text-sm mt-2">
+        <div><strong>Breakfast:</strong> ${firstDay.breakfast?.name || 'N/A'}</div>
+        <div><strong>Lunch:</strong> ${firstDay.lunch?.name || 'N/A'}</div>
+        <div><strong>Dinner:</strong> ${firstDay.dinner?.name || 'N/A'}</div>
+      </div>`;
+      planHtml += `<a href="/dashboard/${profile.id}" target="_blank" class="brutal-btn bg-sage text-cream text-sm px-3 py-1 mt-2 inline-block">View Full Plan</a>`;
+    } else {
+      planHtml += '<p>No diet plan yet.</p>';
+    }
+    planHtml += '</div>';
+    
+    const answers = Object.entries(profile.questionnaire_answers).map(([q, ans]) => `<li><strong>${q}:</strong> ${ans}</li>`).join('');
+    
+    const html = `
+      <div class="grid md:grid-cols-2 gap-6">
+        <div>
+          <h4 class="font-display font-700">Profile</h4>
+          <p><strong>Name:</strong> ${profile.name}</p>
+          <p><strong>Email:</strong> ${data.user.email}</p>
+          <p><strong>Age:</strong> ${profile.age}</p>
+          <p><strong>Weight:</strong> ${profile.weight}</p>
+          <p><strong>Diet:</strong> ${profile.dietary_preference === 'veg' ? 'Vegetarian' : 'Non-Veg'}</p>
+          ${profile.cuisine_preference ? `<p><strong>Cuisine:</strong> ${profile.cuisine_preference}</p>` : ''}
+          <p><strong>Primary Dosha:</strong> ${profile.primary_dosha}</p>
+          <div class="mt-4">
+            <h5 class="font-600">Dosha Description</h5>
+            <p><strong>Element:</strong> ${doshaInfo.element}</p>
+            <p><strong>Traits:</strong> ${doshaInfo.traits}</p>
+            <p><strong>Dietary Focus:</strong> ${doshaInfo.dietary_focus}</p>
+            <p><strong>Avoid:</strong> ${doshaInfo.avoid}</p>
+          </div>
+        </div>
+        <div>
+          <h4 class="font-display font-700">Questionnaire Answers</h4>
+          <ul class="list-disc pl-5 text-sm">${answers}</ul>
+        </div>
+      </div>
+      ${planHtml}
+    `;
+    document.getElementById('patient-content').innerHTML = html;
+    document.getElementById('patient-modal').classList.remove('hidden');
+  }
+  
+  function closePatientModal() {
+    document.getElementById('patient-modal').classList.add('hidden');
+  }
+</script>
+{% endblock %}

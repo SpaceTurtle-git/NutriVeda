@@ -8,6 +8,7 @@
   const USER_DATA   = {{ user | tojson }};
   const PLAN_DATA   = {{ plan | tojson }};
   const DOSHA_INFO  = {{ dosha_info | tojson }};
+  const IS_DOCTOR_VIEW = {{ is_doctor_view|tojson }};
   if (PLAN_DATA && PLAN_DATA.recipe_status === 'pending') {
     const planId = PLAN_DATA.id;
     const pollInterval = setInterval(async () => {
@@ -67,10 +68,12 @@
           <strong>{{ 'Vegetarian 🥦' if user.dietary_preference == 'veg' else 'Non-Veg 🍗' }}</strong>
         </div>
       </div>
-      <button onclick="document.getElementById('update-modal').classList.remove('hidden')"
-        class="brutal-btn bg-sand text-bark w-full py-2 text-sm font-600 mt-2">
-        ✏️ Update Profile
-      </button>
+{% if not is_doctor_view %}
+  <button onclick="document.getElementById('update-modal').classList.remove('hidden')"
+    class="brutal-btn bg-sand text-bark w-full py-2 text-sm font-600 mt-2">
+    ✏️ Update Profile
+  </button>
+{% endif %}
     </div>
 
     <!-- Quick Tips -->

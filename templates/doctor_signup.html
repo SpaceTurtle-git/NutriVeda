@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Doctor Signup — Nutriveda{% endblock %}
+{% block content %}
+<section class="max-w-md mx-auto px-6 py-16">
+  <div class="brutal-card bg-white p-8 space-y-6">
+    <h2 class="font-display font-700 text-2xl">Doctor Registration</h2>
+    <form id="doctor-signup-form" class="space-y-4">
+      <div>
+        <label class="brutal-label">Full Name</label>
+        <input type="text" id="name" class="brutal-input w-full" required />
+      </div>
+      <div>
+        <label class="brutal-label">Email</label>
+        <input type="email" id="email" class="brutal-input w-full" required />
+      </div>
+      <div>
+        <label class="brutal-label">Password</label>
+        <input type="password" id="password" class="brutal-input w-full" required />
+      </div>
+      <div>
+        <label class="brutal-label">Secret Key</label>
+        <input type="password" id="secret" class="brutal-input w-full" required />
+      </div>
+      <button type="submit" class="brutal-btn bg-bark text-cream w-full py-3 font-display font-700">
+        Register as Doctor
+      </button>
+    </form>
+    <p class="text-sm text-center">Already have an account? <a href="{{ url_for('main.login') }}" class="text-sage font-600">Login</a></p>
+  </div>
+</section>
+<script>
+  document.getElementById('doctor-signup-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = document.getElementById('name').value;
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const secret = document.getElementById('secret').value;
+    const res = await fetch('/doctor/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password, secret })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      window.location.href = data.redirect;
+    } else {
+      showToast(data.error || 'Signup failed', 'error');
+    }
+  });
+</script>
+{% endblock %}

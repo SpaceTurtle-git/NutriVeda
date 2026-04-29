@@ -1,5 +1,3 @@
-# app/models.py
-
 from app import db, login_manager
 from flask_login import UserMixin
 from datetime import datetime
@@ -11,13 +9,14 @@ import json
 # ──────────────────────────────────────────────
 class User(UserMixin, db.Model):
     __tablename__ = "users"
+    __table_args__ = {'extend_existing': True}
 
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
+    role = db.Column(db.String(20), default="patient")
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    # One-to-one relationship with UserProfile
     profile = db.relationship("UserProfile", uselist=False, back_populates="user", cascade="all, delete-orphan")
 
     def set_password(self, password):
@@ -32,15 +31,15 @@ class User(UserMixin, db.Model):
 # ──────────────────────────────────────────────
 class UserProfile(db.Model):
     __tablename__ = "user_profiles"
-
-    cuisine_preference = db.Column(db.String(20), nullable=False, default="international")   # 'indian' or 'international'
+    __table_args__ = {'extend_existing': True}
 
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), unique=True, nullable=False)
     name = db.Column(db.String(100), nullable=False)
     age = db.Column(db.Integer, nullable=False)
     weight = db.Column(db.Float, nullable=False)
-    dietary_preference = db.Column(db.String(20), nullable=False)  # 'veg' or 'non-veg'
+    dietary_preference = db.Column(db.String(20), nullable=False)
+    cuisine_preference = db.Column(db.String(20), nullable=False, default="international")
     questionnaire_answers = db.Column(db.Text, nullable=False)
     primary_dosha = db.Column(db.String(20), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -56,11 +55,11 @@ class UserProfile(db.Model):
             "age": self.age,
             "weight": self.weight,
             "dietary_preference": self.dietary_preference,
+            "cuisine_preference": self.cuisine_preference,
             "questionnaire_answers": json.loads(self.questionnaire_answers),
             "primary_dosha": self.primary_dosha,
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
-            "cuisine_preference": self.cuisine_preference,
         }
 
 
@@ -69,13 +68,14 @@ class UserProfile(db.Model):
 # ──────────────────────────────────────────────
 class DietPlan(db.Model):
     __tablename__ = "diet_plans"
+    __table_args__ = {'extend_existing': True}
 
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user_profiles.id"), nullable=False)
-    plan_data = db.Column(db.Text, nullable=False)   # JSON string of 7-day plan (may have recipes or not)
+    plan_data = db.Column(db.Text, nullable=False)
     dosha_at_generation = db.Column(db.String(20), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    recipe_status = db.Column(db.String(20), default="pending")  # 'pending', 'complete', 'failed'
+    recipe_status = db.Column(db.String(20), default="pending")
 
     user = db.relationship("UserProfile", back_populates="diet_plans")
 

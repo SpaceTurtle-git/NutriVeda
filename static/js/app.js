@@ -163,21 +163,21 @@ function renderMeals(day) {
     const swapBtn = `<button onclick="openSwapModal(${dayNumber}, '${mealType}')" class="brutal-btn bg-sand text-bark text-xs px-3 py-1">🔄 Swap</button>`;
     
     let actionButtons = '';
-    if (hasRecipe) {
-      actionButtons = `
-        <div class="flex gap-2 mt-3">
-          <button onclick="showRecipeModal('${mealType}', ${dayNumber})" class="brutal-btn bg-sage text-cream text-xs px-3 py-1">📖 View Full Recipe</button>
-          ${swapBtn}
-        </div>
-      `;
-    } else {
-      actionButtons = `
-        <div class="flex gap-2 mt-3">
-          <div class="text-xs text-bark/50 italic">⚠️ Recipe details not available</div>
-          ${swapBtn}
-        </div>
-      `;
-    }
+if (hasRecipe) {
+  actionButtons = `
+    <div class="flex gap-2 mt-3">
+      <button onclick="showRecipeModal('${mealType}', ${dayNumber})" class="brutal-btn bg-sage text-cream text-xs px-3 py-1">📖 View Full Recipe</button>
+      ${!IS_DOCTOR_VIEW ? swapBtn : ''}
+    </div>
+  `;
+} else {
+  actionButtons = `
+    <div class="flex gap-2 mt-3">
+      <div class="text-xs text-bark/50 italic">⚠️ Recipe details not available</div>
+      ${!IS_DOCTOR_VIEW ? swapBtn : ''}
+    </div>
+  `;
+}
 
     const ingredientHTML = (meal.ingredients || [])
       .map(ing => `<span class="ingredient-tag">${escapeHtml(ing)}</span>`)

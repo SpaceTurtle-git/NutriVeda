@@ -24,7 +24,7 @@ document.getElementById('download-pdf-btn')?.addEventListener('click', function(
   // Header
   pdfContent.innerHTML = `
     <div style="text-align: center; margin-bottom: 30px; border-bottom: 3px solid #2C2416; padding-bottom: 20px;">
-      <h1 style="font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; margin: 0;">ĀyurvedaDiet</h1>
+      <h1 style="font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; margin: 0;">Nutriveda</h1>
       <p style="font-size: 14px; letter-spacing: 2px; text-transform: uppercase; margin-top: 5px;">Personalized 7‑Day Meal Plan</p>
     </div>
 
@@ -48,7 +48,7 @@ document.getElementById('download-pdf-btn')?.addEventListener('click', function(
     <h2 style="font-family: 'Syne'; font-size: 22px; border-left: 6px solid #7BAE7F; padding-left: 15px; margin: 20px 0;">Your 7‑Day Meal Plan</h2>
     <div id="pdf-days-container"></div>
     <div style="margin-top: 30px; text-align: center; font-size: 10px; color: #2C2416; border-top: 1px solid #2C2416; padding-top: 15px;">
-      Generated on ${new Date().toLocaleDateString()} · ĀyurvedaDiet — Eat right for your dosha.
+      Generated on ${new Date().toLocaleDateString()} · Nutriveda — Eat right for your dosha.
     </div>
   `;
 
@@ -106,7 +106,7 @@ document.getElementById('download-pdf-btn')?.addEventListener('click', function(
   // Options for html2pdf
   const opt = {
     margin:        [0.5, 0.5, 0.5, 0.5], // top, right, bottom, left (inches)
-    filename:     `ĀyurvedaDiet_${user.name.replace(/\s/g, '_')}_${new Date().toISOString().slice(0,10)}.pdf`,
+    filename:     `Nutriveda_${user.name.replace(/\s/g, '_')}_${new Date().toISOString().slice(0,10)}.pdf`,
     image:        { type: 'jpeg', quality: 0.98 },
     html2canvas:  { scale: 2, letterRendering: true, useCORS: true },
     jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
