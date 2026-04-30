@@ -4,6 +4,22 @@ NutriVeda is an Ayurvedic diet web application designed to help users discover t
 
 By combining the ancient wisdom of Ayurveda with modern AI, NutriVeda delivers an interactive, intelligent, and visually striking experience.
 
+## Landing Page
+<img width="1245" height="759" alt="image" src="https://github.com/user-attachments/assets/bb2f5b2c-88ec-47ad-8302-0cbdba20fcd6" />
+
+## Dosha Questionnaire
+<img width="1296" height="913" alt="image" src="https://github.com/user-attachments/assets/62a93860-e996-4ae1-ac97-a3625ed99c19" />
+
+## Patient DashBoard Veiw
+<img width="1255" height="889" alt="image" src="https://github.com/user-attachments/assets/c9b2e850-65b2-4f33-b12c-a2ab59af8b28" />
+
+## Guide Page
+<img width="1399" height="892" alt="image" src="https://github.com/user-attachments/assets/02813a9d-d9c2-4782-8570-0a28d70805ad" />
+
+## DoctorVeiw
+<img width="1266" height="603" alt="image" src="https://github.com/user-attachments/assets/5a727c44-bc6e-4a92-a312-ed5389c9acd3" />
+
+
 ---
 
 ## ✨ Features
