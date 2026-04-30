@@ -9,3 +9,4 @@ bcrypt==4.2.0
 requests==2.32.3
 httpx==0.27.2
 psycopg2-binary
+gunicorn==21.2.0
