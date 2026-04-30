@@ -74,12 +74,12 @@ Follow these steps to run NutriVeda locally:
 
 ---
 
-### 📦 Installation
+# 📦 Installation
 
-# Navigate to project directory
+### Navigate to project directory
 cd NutriVeda
 
-# Create virtual environment
+### Create virtual environment
 python3 -m venv venv
 
 ---
