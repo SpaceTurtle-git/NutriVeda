@@ -22,38 +22,38 @@ By combining the ancient wisdom of Ayurveda with modern AI, NutriVeda delivers a
 
 ---
 
-## ✨ Features
+## Features
 
-- 🧘‍♂️ Dosha Assessment Quiz  
+- Dosha Assessment Quiz  
   A streamlined 9-question quiz to accurately determine the user's dominant dosha.
 
-- 🧠 AI-Powered Diet Plans  
+-  AI-Powered Diet Plans  
   Uses Groq's LLM to generate customized 7-day meal plans tailored to individual dosha and nutritional needs.
 
-- 🍲 Real Recipe Integration  
+- Real Recipe Integration  
   Fetches real recipes asynchronously via TheMealDB API, including:
   - Ingredients  
   - Step-by-step instructions  
   - Embedded YouTube tutorials  
 
-- 🤖 Dosha-Aware Chatbot  
+- Dosha-Aware Chatbot  
   A context-aware chatbot offering personalized Ayurvedic advice.
 
-- 🔐 User Authentication & Profiles  
+- User Authentication & Profiles  
   Secure signup, login, and profile management.
 
-- 📄 PDF Export  
+- PDF Export  
   Download meal plans for offline access.
 
-- 📖 Ayurveda Guide  
+- Ayurveda Guide  
   Learn the fundamentals of Ayurvedic nutrition and lifestyle.
 
-- 🎨 Neo-Brutalist UI  
+- Neo-Brutalist UI  
   Bold, modern design using Vanilla JS and CSS with smooth animations.
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 Backend: Python, Flask  
 Database: SQLite  
@@ -63,7 +63,7 @@ External APIs: TheMealDB API
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 Follow these steps to run NutriVeda locally:
 
@@ -74,7 +74,7 @@ Follow these steps to run NutriVeda locally:
 
 ---
 
-# 📦 Installation
+# Installation
 
 ### Navigate to project directory
 cd NutriVeda
@@ -101,7 +101,7 @@ pip install --upgrade groq
 
 ---
 
-### 🔐 Environment Variables
+###  Environment Variables
 
 Create a `.env` file in the root directory and add:
 
@@ -115,14 +115,14 @@ python run.py
 
 ---
 
-### 🌐 Access the App
+### Access the App
 
 Open your browser and go to:
 http://127.0.0.1:5000
 
 ---
 
-## 💡 How It Works
+## How It Works
 
 1. Sign Up / Log In  
    Create an account to save your profile.
