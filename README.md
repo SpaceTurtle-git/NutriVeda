@@ -67,7 +67,7 @@ External APIs: TheMealDB API
 
 Follow these steps to run NutriVeda locally:
 
-### ✅ Prerequisites
+### Prerequisites
 
 - Python 3.x  
 - Groq API Key  
@@ -94,7 +94,7 @@ venv\Scripts\activate
 
 ---
 
-### 📥 Install Dependencies
+### Install Dependencies
 
 pip install -r requirements.txt  
 pip install --upgrade groq  
@@ -109,7 +109,7 @@ GROQ_API_KEY=your_api_key_here
 
 ---
 
-### ▶️ Run the Application
+### Run the Application
 
 python run.py
 
