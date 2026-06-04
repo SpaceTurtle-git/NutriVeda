@@ -13,6 +13,9 @@ By combining the ancient wisdom of Ayurveda with modern AI, NutriVeda delivers a
 ## Patient DashBoard Veiw
 <img width="1255" height="889" alt="image" src="https://github.com/user-attachments/assets/c9b2e850-65b2-4f33-b12c-a2ab59af8b28" />
 
+## Context Aware AI chatbot
+<img width="1537" height="850" alt="image" src="https://github.com/user-attachments/assets/b2679657-5b7a-42e2-a544-cb6838974c1f" />
+
 ## Guide Page
 <img width="1399" height="892" alt="image" src="https://github.com/user-attachments/assets/02813a9d-d9c2-4782-8570-0a28d70805ad" />
 
