@@ -109,6 +109,10 @@ pip install --upgrade groq
 Create a `.env` file in the root directory and add:
 
 GROQ_API_KEY=your_api_key_here
+GROQ_MODEL=openai/gpt-oss-120b
+
+`GROQ_MODEL` is optional; the application defaults to `openai/gpt-oss-120b`.
+On Render, add these values under the web service's environment variables and redeploy.
 
 ---
 

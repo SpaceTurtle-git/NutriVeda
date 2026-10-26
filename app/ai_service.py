@@ -108,7 +108,7 @@ Include herbal teas, spices, and cooking techniques that pacify {dosha}.
 Remember: respond with ONLY the JSON object."""
 
     completion = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model=current_app.config["GROQ_MODEL"],
         messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt},
@@ -137,7 +137,7 @@ def chat_response(messages, user_context=None):
         formatted_messages = [{"role": "system", "content": system_message}, *messages]
         chat_completion = client.chat.completions.create(
             messages=formatted_messages,
-            model="llama-3.3-70b-versatile",
+            model=current_app.config["GROQ_MODEL"],
             temperature=0.7,
             max_tokens=1024,
         )
@@ -179,7 +179,7 @@ Do not add markdown or extra text."""
     user_prompt = f"Generate a {meal_type} meal for {dosha} dosha, {diet_pref} diet, {cuisine_pref} cuisine. User request: {custom_request}"
 
     completion = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model=current_app.config["GROQ_MODEL"],
         messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt}
