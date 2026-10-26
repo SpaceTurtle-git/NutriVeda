@@ -7,6 +7,43 @@ from flask import current_app
 from pathlib import Path
 
 _MEAL_NAMES_LIST = None
+_MEAL_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "name": {"type": "string"},
+        "description": {"type": "string"},
+        "ingredients": {"type": "array", "items": {"type": "string"}},
+        "benefits": {"type": "string"},
+    },
+    "required": ["name", "description", "ingredients", "benefits"],
+    "additionalProperties": False,
+}
+_DIET_PLAN_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "dosha_summary": {"type": "string"},
+        "days": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "day": {"type": "integer"},
+                    "day_name": {"type": "string"},
+                    "breakfast": _MEAL_SCHEMA,
+                    "lunch": _MEAL_SCHEMA,
+                    "dinner": _MEAL_SCHEMA,
+                    "daily_tip": {"type": "string"},
+                },
+                "required": [
+                    "day", "day_name", "breakfast", "lunch", "dinner", "daily_tip"
+                ],
+                "additionalProperties": False,
+            },
+        },
+    },
+    "required": ["dosha_summary", "days"],
+    "additionalProperties": False,
+}
 
 def filter_indian_meals(meal_names):
     """Return only meal names that appear to be Indian cuisine."""
@@ -47,6 +84,25 @@ def get_meal_names_list(max_names=400, cuisine="international"):
 def _get_client() -> Groq:
     return Groq(api_key=current_app.config["GROQ_API_KEY"])
 
+def _parse_json_object(content, response_name: str) -> dict:
+    if not content or not content.strip():
+        raise ValueError(f"The model returned an empty {response_name} response.")
+
+    raw = content.strip()
+    raw = re.sub(r"^```(?:json)?\s*", "", raw, flags=re.IGNORECASE)
+    raw = re.sub(r"\s*```$", "", raw)
+    decoder = json.JSONDecoder()
+    for index, character in enumerate(raw):
+        if character == "{":
+            try:
+                result, _ = decoder.raw_decode(raw[index:])
+            except json.JSONDecodeError:
+                continue
+            if isinstance(result, dict):
+                return result
+
+    raise ValueError(f"The model returned invalid {response_name} JSON: {raw[:500]}")
+
 def generate_diet_plan(user_profile: dict) -> dict:
     client = _get_client()
 
@@ -82,8 +138,18 @@ The JSON structure must be exactly:
         "ingredients": ["item1", "item2"],
         "benefits": "Ayurvedic benefit"
       }},
-      "lunch": {{ ... }},
-      "dinner": {{ ... }},
+      "lunch": {{
+        "name": "Meal name from list",
+        "description": "Brief Ayurvedic description",
+        "ingredients": ["item1", "item2"],
+        "benefits": "Ayurvedic benefit"
+      }},
+      "dinner": {{
+        "name": "Meal name from list",
+        "description": "Brief Ayurvedic description",
+        "ingredients": ["item1", "item2"],
+        "benefits": "Ayurvedic benefit"
+      }},
       "daily_tip": "..."
     }}
   ]
@@ -113,20 +179,22 @@ Remember: respond with ONLY the JSON object."""
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt},
         ],
+        response_format={
+            "type": "json_schema",
+            "json_schema": {
+                "name": "diet_plan",
+                "strict": True,
+                "schema": _DIET_PLAN_SCHEMA,
+            },
+        },
         temperature=0.7,
-        max_tokens=4000,
+        max_tokens=8000,
     )
 
-    raw = completion.choices[0].message.content.strip()
-    raw = re.sub(r"^```(?:json)?\s*", "", raw)
-    raw = re.sub(r"\s*```$", "", raw)
-
-    try:
-        plan = json.loads(raw)
-    except json.JSONDecodeError as e:
-        raise ValueError(f"Failed to parse diet plan JSON: {e}\nRaw: {raw[:500]}")
-
-    return plan
+    choice = completion.choices[0]
+    if choice.finish_reason == "length":
+        raise ValueError("The model response was truncated. Please retry generating the diet plan.")
+    return _parse_json_object(choice.message.content, "diet plan")
 
 def chat_response(messages, user_context=None):
     try:
@@ -184,15 +252,19 @@ Do not add markdown or extra text."""
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt}
         ],
+        response_format={
+            "type": "json_schema",
+            "json_schema": {
+                "name": "alternative_meal",
+                "strict": True,
+                "schema": _MEAL_SCHEMA,
+            },
+        },
         temperature=0.8,
         max_tokens=500,
     )
 
-    raw = completion.choices[0].message.content.strip()
-    raw = re.sub(r"^```(?:json)?\s*", "", raw)
-    raw = re.sub(r"\s*```$", "", raw)
-    try:
-        meal = json.loads(raw)
-    except json.JSONDecodeError as e:
-        raise ValueError(f"Invalid JSON: {e}\nRaw: {raw[:200]}")
-    return meal
+    choice = completion.choices[0]
+    if choice.finish_reason == "length":
+        raise ValueError("The model response was truncated. Please retry generating the alternative meal.")
+    return _parse_json_object(choice.message.content, "alternative meal")
